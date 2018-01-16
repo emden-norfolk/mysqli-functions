@@ -1,5 +1,7 @@
 <?php
 
+define('MYSQLI_PLACEHOLDERS_WHERE', 2);
+
 function mysqli_fetch_assoc_per_table(mysqli_result $result, $instruction) {
 	$row = $result->fetch_assoc();
 	if (!$row) return false;
@@ -93,7 +95,7 @@ function mysqli_placeholders(mysqli $link, array &$params, $set = false, $glue =
 			$params[$name] = $link->real_escape_string($value);
 		}
 		if (is_null($value)) {
-			$placeholders[] = $set ? "$name = NULL" : 'NULL';
+			$placeholders[] = $set ? ($set == MYSQLI_PLACEHOLDERS_WHERE ? "$name IS NULL" : "$name = NULL") : 'NULL';
 			unset($params[$name]);
 		}
 	}
@@ -117,7 +119,7 @@ function mysqli_update(mysqli $link, $table, array $params, array $where, $limit
 	$sql = "
 		UPDATE `$table`
 		SET ". mysqli_placeholders($link, $params, true) ."
-		WHERE ". mysqli_placeholders($link, $where, true, ' AND ');
+		WHERE ". mysqli_placeholders($link, $where, MYSQLI_PLACEHOLDERS_WHERE, ' AND ');
 
 	if ($limit) {
 		$sql .= " LIMIT $limit";
@@ -129,7 +131,7 @@ function mysqli_update(mysqli $link, $table, array $params, array $where, $limit
 function mysqli_select(mysqli $link, $table, array $where = array(), $order_by = null) {
 	$sql = "SELECT * FROM `$table`";
 	if ($where)
-		$sql .= ' WHERE '. mysqli_placeholders($link, $where, true, ' AND ');
+		$sql .= ' WHERE '. mysqli_placeholders($link, $where, MYSQLI_PLACEHOLDERS_WHERE, ' AND ');
 
 	if ($order_by !== null)
 		$sql .= " ORDER BY $order_by";
@@ -141,7 +143,7 @@ function mysqli_delete(mysqli $link, $table, array $where) {
 	$sql = "
 		DELETE
 		FROM `$table`
-		WHERE ". mysqli_placeholders($link, $where, true, ' AND ');
+		WHERE ". mysqli_placeholders($link, $where, MYSQLI_PLACEHOLDERS_WHERE, ' AND ');
 
 	return $link->query(call_user_func_array('sprintf', array_merge([$sql], $where)));
 }
