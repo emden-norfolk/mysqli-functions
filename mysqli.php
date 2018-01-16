@@ -95,7 +95,7 @@ function mysqli_placeholders(mysqli $link, array &$params, $set = false, $glue =
 			$params[$name] = $link->real_escape_string($value);
 		}
 		if (is_null($value)) {
-			$placeholders[] = $set ? ($set == MYSQLI_PLACEHOLDERS_WHERE ? "$name IS NULL" : "$name = NULL") : 'NULL';
+			$placeholders[] = $set ? ($set === MYSQLI_PLACEHOLDERS_WHERE ? "$name IS NULL" : "$name = NULL") : 'NULL';
 			unset($params[$name]);
 		}
 	}
